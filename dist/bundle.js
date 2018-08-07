@@ -9,16 +9,37 @@
    * @type {Object}
    */
   var MSE_CALLS = {
-    MediaSource_addSourceBuffer: [],
-    MediaSource_removeSourceBuffer: [],
-    MediaSource_endOfStream: [],
-    MediaSource_setLiveSeekableRange: [],
-    MediaSource_clearLiveSeekableRange: [],
-    MediaSource_isTypeSupported: [],
-    SourceBuffer_appendBuffer: [],
-    SourceBuffer_abort: [],
-    SourceBuffer_remove: []
+    MediaSource: {
+      new: [], // TODO
+      methods: {},
+      properties: {},
+      events: {} // TODO
+    },
+    SourceBuffer: {
+      new: [], // TODO
+      methods: {},
+      properties: {},
+      events: {} // TODO
+    }
   };
+
+  function getMSECalls() {
+    return MSE_CALLS;
+  }
+
+  function resetMSECalls() {
+    MSE_CALLS.MediaSource.new = [];
+    MSE_CALLS.MediaSource.methods = [];
+    MSE_CALLS.MediaSource.properties = [];
+    MSE_CALLS.MediaSource.events = [];
+
+    MSE_CALLS.SourceBuffer.new = [];
+    MSE_CALLS.SourceBuffer.methods = [];
+    MSE_CALLS.SourceBuffer.properties = [];
+    MSE_CALLS.SourceBuffer.events = [];
+  }
+  var NativeMediaSource = window.MediaSource;
+  var NativeSourceBuffer = window.SourceBuffer;
 
   /**
    * Define the logger for startMSESpy.
@@ -57,304 +78,249 @@
   };
 
   /**
-   * Start spying on MSE API calls.
-   * @returns {Object} - Object with a "restore" function, restoring all stubs
-   * done here.
+   * Log when a function is called with its arguments.
+   * @param {string} fnName
+   * @param {Array.<*>} args
    */
-  function startMSESpy() {
-    /**
-     * Log when a function is called with its arguments.
-     * @param {string} fnName
-     * @param {Array.<*>} args
-     */
-    function onAPICall(fnName, args) {
-      if (args.length) {
-        Logger.debug(">>> " + fnName + " called with arguments:", args);
-      } else {
-        Logger.debug(">>> " + fnName + " called");
-      }
+  function onAPICall(fnName, args) {
+    if (args.length) {
+      Logger.debug(">>> " + fnName + " called with arguments:", args);
+    } else {
+      Logger.debug(">>> " + fnName + " called");
     }
-
-    var saveAddSourceBuffer = MediaSource.prototype.addSourceBuffer;
-    MediaSource.prototype.addSourceBuffer = function () {
-      for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-        args[_key] = arguments[_key];
-      }
-
-      onAPICall("MediaSource.addSourceBuffer", args);
-      var myObj = {
-        self: this,
-        date: Date.now(),
-        args: args
-      };
-      MSE_CALLS.MediaSource_addSourceBuffer.push(myObj);
-
-      var sourceBuffer = void 0;
-      try {
-        sourceBuffer = saveAddSourceBuffer.apply(this, args);
-      } catch (e) {
-        Logger.error(">> MediaSource.prototype.addSourceBuffer failed:", e);
-        myObj.error = e;
-        myObj.errorDate = Date.now();
-        throw e;
-      }
-      Logger.debug(">> MediaSource.prototype.addSourceBuffer succeeded:", sourceBuffer);
-      myObj.response = sourceBuffer;
-      myObj.responseDate = Date.now();
-      return sourceBuffer;
-    };
-
-    var saveRemoveSourceBuffer = MediaSource.prototype.removeSourceBuffer;
-    MediaSource.prototype.removeSourceBuffer = function () {
-      for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-        args[_key2] = arguments[_key2];
-      }
-
-      onAPICall("MediaSource.removeSourceBuffer", args);
-      var myObj = {
-        self: this,
-        date: Date.now(),
-        args: args
-      };
-      MSE_CALLS.MediaSource_removeSourceBuffer.push(myObj);
-
-      var res = void 0;
-      try {
-        res = saveRemoveSourceBuffer.apply(this, args);
-      } catch (e) {
-        Logger.error(">> MediaSource.prototype.removeSourceBuffer failed:", e);
-        myObj.error = e;
-        myObj.errorDate = Date.now();
-        throw e;
-      }
-      Logger.debug(">> MediaSource.prototype.removeSourceBuffer succeeded:", res);
-      myObj.response = res;
-      myObj.responseDate = Date.now();
-      return res;
-    };
-
-    var saveEndOfStream = MediaSource.prototype.endOfStream;
-    MediaSource.prototype.endOfStream = function () {
-      for (var _len3 = arguments.length, args = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-        args[_key3] = arguments[_key3];
-      }
-
-      onAPICall("MediaSource.endOfStream", args);
-      var myObj = {
-        self: this,
-        date: Date.now(),
-        args: args
-      };
-      MSE_CALLS.MediaSource_endOfStream.push(myObj);
-
-      var res = void 0;
-      try {
-        res = saveEndOfStream.apply(this, args);
-      } catch (e) {
-        Logger.error(">> MediaSource.prototype.endOfStream failed:", e);
-        myObj.error = e;
-        myObj.errorDate = Date.now();
-        throw e;
-      }
-      Logger.debug(">> MediaSource.prototype.endOfStream succeeded:", res);
-      myObj.response = res;
-      myObj.responseDate = Date.now();
-      return res;
-    };
-
-    var saveSetLiveSeekableRange = MediaSource.prototype.setLiveSeekableRange;
-    MediaSource.prototype.setLiveSeekableRange = function () {
-      for (var _len4 = arguments.length, args = Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
-        args[_key4] = arguments[_key4];
-      }
-
-      onAPICall("MediaSource.setLiveSeekableRange", args);
-      var myObj = {
-        self: this,
-        date: Date.now(),
-        args: args
-      };
-      MSE_CALLS.MediaSource_setLiveSeebleRange.push(myObj);
-
-      var res = void 0;
-      try {
-        res = saveSetLiveSeekableRange.apply(this, args);
-      } catch (e) {
-        Logger.error(">> MediaSource.prototype.setLiveSeekableRange failed:", e);
-        myObj.error = e;
-        myObj.errorDate = Date.now();
-        throw e;
-      }
-      Logger.debug(">> MediaSource.prototype.setLiveSeekableRange succeeded:", res);
-      myObj.response = res;
-      myObj.responseDate = Date.now();
-      return res;
-    };
-
-    var saveClearLiveSeekableRange = MediaSource.prototype.clearLiveSeekableRange;
-    MediaSource.prototype.clearLiveSeekableRange = function () {
-      for (var _len5 = arguments.length, args = Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
-        args[_key5] = arguments[_key5];
-      }
-
-      onAPICall("MediaSource.clearLiveSeekableRange", args);
-      var myObj = {
-        self: this,
-        date: Date.now(),
-        args: args
-      };
-      MSE_CALLS.MediaSource_clearLiveSeebleRange.push(myObj);
-
-      var res = void 0;
-      try {
-        res = saveClearLiveSeekableRange.apply(this, args);
-      } catch (e) {
-        Logger.error(">> MediaSource.prototype.clearLiveSeekableRange failed:", e);
-        myObj.error = e;
-        myObj.errorDate = Date.now();
-        throw e;
-      }
-      Logger.debug(">> MediaSource.prototype.clearLiveSeekableRange succeeded:", res);
-      myObj.response = res;
-      myObj.responseDate = Date.now();
-      return res;
-    };
-
-    var saveIsTypeSupported = MediaSource.prototype.isTypeSupported;
-    MediaSource.prototype.isTypeSupported = function () {
-      for (var _len6 = arguments.length, args = Array(_len6), _key6 = 0; _key6 < _len6; _key6++) {
-        args[_key6] = arguments[_key6];
-      }
-
-      onAPICall("MediaSource.isTypeSupported", args);
-      var myObj = {
-        self: this,
-        date: Date.now(),
-        args: args
-      };
-      MSE_CALLS.MediaSource_clearLiveSeebleRange.push(myObj);
-
-      var res = void 0;
-      try {
-        res = saveIsTypeSupported.apply(this, args);
-      } catch (e) {
-        Logger.error(">> MediaSource.prototype.isTypeSupported failed:", e);
-        myObj.error = e;
-        myObj.errorDate = Date.now();
-        throw e;
-      }
-      Logger.debug(">> MediaSource.prototype.isTypeSupported succeeded:", res);
-      myObj.response = res;
-      myObj.responseDate = Date.now();
-      return res;
-    };
-
-    var saveAppendBuffer = SourceBuffer.prototype.appendBuffer;
-    SourceBuffer.prototype.appendBuffer = function () {
-      for (var _len7 = arguments.length, args = Array(_len7), _key7 = 0; _key7 < _len7; _key7++) {
-        args[_key7] = arguments[_key7];
-      }
-
-      onAPICall("SourceBuffer.appendBuffer", args);
-      var myObj = {
-        self: this,
-        date: Date.now(),
-        args: args
-      };
-      MSE_CALLS.SourceBuffer_appendBuffer.push(myObj);
-
-      var res = void 0;
-      try {
-        res = saveAppendBuffer.apply(this, args);
-      } catch (e) {
-        Logger.error(">> SourceBuffer.prototype.appendBuffer failed:", e);
-        myObj.error = e;
-        myObj.errorDate = Date.now();
-        throw e;
-      }
-      Logger.debug(">> SourceBuffer.prototype.appendBuffer succeeded:", res);
-      myObj.response = res;
-      myObj.responseDate = Date.now();
-      return res;
-    };
-
-    var saveAbort = SourceBuffer.prototype.abort;
-    SourceBuffer.prototype.abort = function () {
-      for (var _len8 = arguments.length, args = Array(_len8), _key8 = 0; _key8 < _len8; _key8++) {
-        args[_key8] = arguments[_key8];
-      }
-
-      onAPICall("SourceBuffer.abort", args);
-      var myObj = {
-        self: this,
-        date: Date.now(),
-        args: args
-      };
-      MSE_CALLS.SourceBuffer_abort.push(myObj);
-
-      var res = void 0;
-      try {
-        res = saveAbort.apply(this, args);
-      } catch (e) {
-        Logger.error(">> SourceBuffer.prototype.abort failed:", e);
-        myObj.error = e;
-        myObj.errorDate = Date.now();
-        throw e;
-      }
-      Logger.debug(">> SourceBuffer.prototype.abort succeeded:", res);
-      myObj.response = res;
-      myObj.responseDate = Date.now();
-      return res;
-    };
-
-    var saveRemove = SourceBuffer.prototype.remove;
-    SourceBuffer.prototype.remove = function () {
-      for (var _len9 = arguments.length, args = Array(_len9), _key9 = 0; _key9 < _len9; _key9++) {
-        args[_key9] = arguments[_key9];
-      }
-
-      onAPICall("SourceBuffer.remove", args);
-      var myObj = {
-        self: this,
-        date: Date.now(),
-        args: args
-      };
-      MSE_CALLS.SourceBuffer_remove.push(myObj);
-
-      var res = void 0;
-      try {
-        res = saveRemove.apply(this, args);
-      } catch (e) {
-        Logger.error(">> SourceBuffer.prototype.remove failed:", e);
-        myObj.error = e;
-        myObj.errorDate = Date.now();
-        throw e;
-      }
-      Logger.debug(">> SourceBuffer.prototype.remove succeeded:", res);
-      myObj.response = res;
-      myObj.responseDate = Date.now();
-      return res;
-    };
-
-    return {
-      restore: function restore() {
-        MediaSource.prototype.addSourceBuffer = saveAddSourceBuffer;
-        MediaSource.prototype.removeSourceBuffer = saveRemoveSourceBuffer;
-        MediaSource.prototype.endOfStream = saveSetLiveSeekableRange;
-        MediaSource.prototype.setLiveSeekableRange = saveSetLiveSeekableRange;
-        MediaSource.prototype.clearLiveSeekableRange = saveClearLiveSeekableRange;
-        MediaSource.prototype.isTypeSupported = saveIsTypeSupported;
-
-        SourceBuffer.prototype.appendBuffer = saveAppendBuffer;
-        SourceBuffer.prototype.abort = saveAbort;
-        SourceBuffer.prototype.remove = saveRemove;
-      }
-    };
   }
 
-  exports.MSE_CALLS = MSE_CALLS;
+  function stubRegularMethods(obj, methods, path, logObj) {
+    var _loop = function _loop(i) {
+      var methodName = methods[i];
+      var completePath = path + "." + methodName;
+      var oldMethod = obj[methodName];
+
+      if (!oldMethod) {
+        throw new Error("No method in " + completePath);
+      }
+
+      obj[methodName] = function () {
+        for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+          args[_key] = arguments[_key];
+        }
+
+        onAPICall(completePath, args);
+        var myObj = {
+          self: obj,
+          date: Date.now(),
+          args: args
+        };
+
+        if (!logObj[methodName]) {
+          logObj[methodName] = [];
+        }
+        logObj[methodName].push(myObj);
+
+        var res = void 0;
+        try {
+          res = oldMethod.apply(this, args);
+        } catch (e) {
+          Logger.error(">> " + completePath + " failed:", e);
+          myObj.error = e;
+          myObj.errorDate = Date.now();
+          throw e;
+        }
+        Logger.debug(">> " + completePath + " succeeded:", res);
+        myObj.response = res;
+        myObj.responseDate = Date.now();
+        return res;
+      };
+    };
+
+    for (var i = 0; i < methods.length; i++) {
+      _loop(i);
+    }
+  }
+
+  function stubReadOnlyProperties(obj, oldDescriptors, properties, path, logObj) {
+    var _loop = function _loop(i) {
+      var propertyName = properties[i];
+      var oldDescriptor = oldDescriptors[propertyName];
+      var completePath = path + "." + propertyName;
+
+      if (!oldDescriptor) {
+        throw new Error("No descriptor for property " + completePath);
+      }
+
+      Object.defineProperty(obj, propertyName, {
+        get: function get() {
+          var value = oldDescriptor.get.bind(this)();
+
+          var myObj = {
+            self: this,
+            date: Date.now(),
+            value: value
+          };
+
+          if (!logObj[propertyName]) {
+            logObj[propertyName] = {
+              get: []
+            };
+          }
+          logObj[propertyName].get.push(myObj);
+
+          Logger.debug(">> Getting " + completePath + ":", value);
+          return value;
+        }
+      });
+    };
+
+    for (var i = 0; i < properties.length; i++) {
+      _loop(i);
+    }
+  }
+
+  function stubProperties(obj, oldDescriptors, properties, path, logObj) {
+    var _loop = function _loop(i) {
+      var propertyName = properties[i];
+      var oldDescriptor = oldDescriptors[propertyName];
+      var completePath = path + "." + propertyName;
+
+      if (!oldDescriptor) {
+        throw new Error("No descriptor for property " + completePath);
+      }
+
+      Object.defineProperty(obj, propertyName, {
+        get: function get() {
+          var value = oldDescriptor.get.bind(this)();
+
+          var myObj = {
+            self: this,
+            date: Date.now(),
+            value: value
+          };
+
+          if (!logObj[propertyName]) {
+            logObj[propertyName] = {
+              set: [],
+              get: []
+            };
+          }
+          logObj[propertyName].get.push(myObj);
+
+          Logger.debug(">> Getting " + completePath + ":", value);
+          return value;
+        },
+        set: function set(value) {
+          Logger.debug(">> Setting " + completePath + ":", value);
+
+          var myObj = {
+            self: this,
+            date: Date.now(),
+            value: value
+          };
+
+          if (!logObj[propertyName]) {
+            logObj[propertyName] = {
+              set: [],
+              get: []
+            };
+          }
+          logObj[propertyName].set.push(myObj);
+          oldDescriptor.set.bind(this)(value);
+        }
+      });
+    };
+
+    for (var i = 0; i < properties.length; i++) {
+      _loop(i);
+    }
+  }
+
+  var NativeMediaSourceProtoDescriptors = Object.getOwnPropertyDescriptors(NativeMediaSource.prototype);
+
+  var NativeMediaSourceIsTypeSupported = NativeMediaSource.isTypeSupported;
+
+  function StubbedMediaSource() {
+    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    if (args.length) {
+      Logger.debug(">>> Creating MediaSource with arguments:", args);
+    } else {
+      Logger.debug(">>> Creating MediaSource");
+    }
+    var nativeMediaSource = new (Function.prototype.bind.apply(NativeMediaSource, [null].concat(args)))();
+    Logger.debug(">>> MediaSource created:", nativeMediaSource);
+    stubReadOnlyProperties(nativeMediaSource, NativeMediaSourceProtoDescriptors, ["sourceBuffers", "activeSourceBuffers", "readyState"], "MediaSource.prototype", MSE_CALLS.MediaSource.properties);
+    stubProperties(nativeMediaSource, NativeMediaSourceProtoDescriptors, ["duration", "onsourceopen", "onsourceended", "onsourceclose"], "MediaSource.prototype", MSE_CALLS.MediaSource.properties);
+    stubRegularMethods(nativeMediaSource, ["addEventListener", "removeEventListener", "dispatchEvent", "addSourceBuffer", "removeSourceBuffer", "endOfStream", "setLiveSeekableRange", "clearLiveSeekableRange"], "MediaSource.prototype", MSE_CALLS.MediaSource.methods);
+
+    return nativeMediaSource;
+  }
+
+  function spyOnMediaSource() {
+    stubRegularMethods(NativeMediaSource, ["isTypeSupported"], "MediaSource.isTypeSupported", MSE_CALLS.MediaSource.methods);
+    window.MediaSource = StubbedMediaSource;
+  }
+
+  function stopSpyingOnMediaSource() {
+    window.MediaSource = NativeMediaSource;
+    window.MediaSource.isTypeSupported = NativeMediaSourceIsTypeSupported;
+  }
+
+  var NativeSourceBufferProtoDescriptors = Object.getOwnPropertyDescriptors(NativeSourceBuffer.prototype);
+
+  var NativeSourceBufferAddEventListener = NativeSourceBuffer.prototype.addEventListener;
+  var NativeSourceBufferRemoveEventListener = NativeSourceBuffer.prototype.removeEventListener;
+  var NativeSourceBufferDispatchEvent = NativeSourceBuffer.prototype.dispatchEvent;
+  var NativeSourceBufferAppendBuffer = NativeSourceBuffer.prototype.appendBuffer;
+  var NativeSourceBufferAbort = NativeSourceBuffer.prototype.abort;
+  var NativeSourceBufferRemove = NativeSourceBuffer.prototype.remove;
+
+  function spyOnSourceBuffer() {
+    stubReadOnlyProperties(NativeSourceBuffer.prototype, NativeSourceBufferProtoDescriptors, ["updating", "buffered"], "SourceBuffer.prototype", MSE_CALLS.SourceBuffer.properties);
+    stubProperties(NativeSourceBuffer.prototype, NativeSourceBufferProtoDescriptors, ["mode", "timestampOffset", "appendWindowStart", "appendWindowEnd", "onupdate", "onupdatestart", "onupdateend", "onerror", "onabort"], "SourceBuffer.prototype", MSE_CALLS.SourceBuffer.properties);
+    stubRegularMethods(NativeSourceBuffer.prototype, ["addEventListener", "removeEventListener", "dispatchEvent", "appendBuffer", "abort", "remove"], "SourceBuffer.prototype", MSE_CALLS.SourceBuffer.methods);
+  }
+
+  function stopSpyingOnSourceBuffer() {
+    Object.defineProperties(NativeSourceBuffer.prototype, {
+      updating: NativeSourceBufferProtoDescriptors.updating,
+      buffered: NativeSourceBufferProtoDescriptors.buffered,
+      mode: NativeSourceBufferProtoDescriptors.mode,
+      timestampOffset: NativeSourceBufferProtoDescriptors.timestampOffset,
+      appendWindowStart: NativeSourceBufferProtoDescriptors.appendWindowStart,
+      appendWindowEnd: NativeSourceBufferProtoDescriptors.appendWindowEnd,
+      onupdate: NativeSourceBufferProtoDescriptors.onupdate,
+      onupdatestart: NativeSourceBufferProtoDescriptors.onupdatestart,
+      onupdateend: NativeSourceBufferProtoDescriptors.onupdateend,
+      onerror: NativeSourceBufferProtoDescriptors.onerror,
+      onabort: NativeSourceBufferProtoDescriptors.onabort
+    });
+    NativeSourceBuffer.prototype.addEventListener = NativeSourceBufferAddEventListener;
+    NativeSourceBuffer.prototype.removeEventListener = NativeSourceBufferRemoveEventListener;
+    NativeSourceBuffer.prototype.dispatchEvent = NativeSourceBufferDispatchEvent;
+    NativeSourceBuffer.prototype.appendBuffer = NativeSourceBufferAppendBuffer;
+    NativeSourceBuffer.prototype.abort = NativeSourceBufferAbort;
+    NativeSourceBuffer.prototype.remove = NativeSourceBufferRemove;
+  }
+
+  /**
+   * Start spying on MSE API calls.
+   */
+  function activateMSESpy() {
+    spyOnMediaSource();
+    spyOnSourceBuffer();
+  }
+
+  function deactivateMSESpy() {
+    stopSpyingOnMediaSource();
+    stopSpyingOnSourceBuffer();
+  }
+
+  exports.getMSECalls = getMSECalls;
+  exports.resetMSECalls = resetMSECalls;
   exports.Logger = Logger;
-  exports.startMSESpy = startMSESpy;
+  exports.activateMSESpy = activateMSESpy;
+  exports.deactivateMSESpy = deactivateMSESpy;
 
   Object.defineProperty(exports, '__esModule', { value: true });
 
