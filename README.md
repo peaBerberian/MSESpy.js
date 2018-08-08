@@ -308,3 +308,15 @@ Logger = {
 Note: if the code above were to be implemented, you wouldn't have any logs
 displaying in the console, as all functions declared here are empty.
 You can look at ``src/utils/logger.js`` for default implementations.
+
+## Left to do
+
+The next steps would be to:
+
+  - register when event listeners are called and when they have finished their
+    execution
+
+  - use performance.now and/or an incrementing ID to better pinpoint when the
+    calls or property access are made relatively to each other
+
+  - simplify the MSECalls object exploitation

@@ -4,14 +4,16 @@
  */
 const MSE_CALLS = {
   MediaSource: {
-    new: [], // TODO
+    new: [],
     methods: {},
     properties: {},
+    eventListeners: {}, // TODO
   },
   SourceBuffer: {
-    new: [], // TODO
+    new: [],
     methods: {},
     properties: {},
+    eventListeners: {}, // TODO
   },
 };
 
