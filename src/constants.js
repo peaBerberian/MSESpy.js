@@ -7,13 +7,11 @@ const MSE_CALLS = {
     new: [], // TODO
     methods: {},
     properties: {},
-    events: {}, // TODO
   },
   SourceBuffer: {
     new: [], // TODO
     methods: {},
     properties: {},
-    events: {}, // TODO
   },
 };
 

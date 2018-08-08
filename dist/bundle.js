@@ -12,14 +12,12 @@
     MediaSource: {
       new: [], // TODO
       methods: {},
-      properties: {},
-      events: {} // TODO
+      properties: {}
     },
     SourceBuffer: {
       new: [], // TODO
       methods: {},
-      properties: {},
-      events: {} // TODO
+      properties: {}
     }
   };
 
@@ -42,53 +40,101 @@
   var NativeSourceBuffer = window.SourceBuffer;
 
   /**
-   * Define the logger for startMSESpy.
+   * Define the logger for the MSE-spy.
    * Allows to re-define a specific logger on runtime / before applying this
    * script.
    * @type {Object}
    */
-  var Logger = window.Logger || {
+  var Logger = window.MSESpyLogger || {
     /* eslint-disable no-console */
-    log: function log() {
-      var _console;
 
-      (_console = console).log.apply(_console, arguments);
+    /**
+     * Triggered each time a property is accessed.
+     * @param {string} pathString - human-readable path to the property.
+     * @param {*} value - the value it currently has.
+     */
+    onPropertyAccess: function onPropertyAccess(pathString, value) {
+      console.debug(">>> Getting ${pathString}:", value);
     },
-    debug: function debug() {
-      var _console2;
 
-      (_console2 = console).debug.apply(_console2, arguments);
+
+    /**
+     * Triggered each time a property is set.
+     * @param {string} pathString - human-readable path to the property.
+     * @param {*} value - the value it is set to.
+     */
+    onSettingProperty: function onSettingProperty(pathString, value) {
+      console.debug(">> Setting " + pathString + ":", value);
     },
-    info: function info() {
-      var _console3;
 
-      (_console3 = console).info.apply(_console3, arguments);
+
+    /**
+     * Triggered when some object is instanciated (just before).
+     * @param {string} objectName - human-readable name for the concerned object.
+     * @param {Array.<*>} args - Arguments given to the constructor
+     */
+    onObjectInstanciation: function onObjectInstanciation(objectName, args) {
+      if (args.length) {
+        console.debug(">>> Creating ${objectName} with arguments:", args);
+      } else {
+        console.debug(">>> Creating ${objectName}");
+      }
     },
-    error: function error() {
-      var _console4;
 
-      (_console4 = console).error.apply(_console4, arguments);
+
+    /**
+     * Triggered when an Object instanciation failed.
+     * @param {string} objectName - human-readable name for the concerned object.
+     * @param {Error} error - Error thrown by the constructor
+     */
+    onObjectInstanciationError: function onObjectInstanciationError(objectName, error) {
+      console.error(">> ${objectName} creation failed:", error);
     },
-    warning: function warning() {
-      var _console5;
 
-      (_console5 = console).warning.apply(_console5, arguments);
+
+    /**
+     * Triggered when an Object instanciation succeeded.
+     * @param {string} objectName - human-readable name for the concerned object.
+     * @param {*} value - The corresponding object instanciated.
+     */
+    onObjectInstanciationSuccess: function onObjectInstanciationSuccess(objectName, value) {
+      console.debug(">>> ${objectName} created:", value);
+    },
+
+
+    /**
+     * Triggered when some method/function is called.
+     * @param {string} pathName - human-readable path for the concerned function.
+     * @param {Array.<*>} args - Arguments given to this function.
+     */
+    onFunctionCall: function onFunctionCall(pathName, args) {
+      if (args.length) {
+        console.debug(">>> " + pathName + " called with arguments:", args);
+      } else {
+        console.debug(">>> " + pathName + " called");
+      }
+    },
+
+
+    /**
+     * Triggered when a function call fails.
+     * @param {string} pathName - human-readable path for the concerned function.
+     * @param {Error} error - Error thrown by the call
+     */
+    onFunctionCallError: function onFunctionCallError(pathName, error) {
+      console.error(">> " + pathName + " failed:", error);
+    },
+
+
+    /**
+     * Triggered when a function call succeeded.
+     * @param {string} pathName - human-readable path for the concerned function.
+     * @param {*} value - The result of the function
+     */
+    onFunctionCallSuccess: function onFunctionCallSuccess(pathName, value) {
+      console.info(">>> ${pathName} succeeded:", value);
     }
-    /* eslint-enable no-console */
   };
-
-  /**
-   * Log when a function is called with its arguments.
-   * @param {string} fnName
-   * @param {Array.<*>} args
-   */
-  function onAPICall(fnName, args) {
-    if (args.length) {
-      Logger.debug(">>> " + fnName + " called with arguments:", args);
-    } else {
-      Logger.debug(">>> " + fnName + " called");
-    }
-  }
 
   function stubRegularMethods(obj, methods, path, logObj) {
     var _loop = function _loop(i) {
@@ -105,7 +151,7 @@
           args[_key] = arguments[_key];
         }
 
-        onAPICall(completePath, args);
+        Logger.onFunctionCall(completePath, args);
         var myObj = {
           self: obj,
           date: Date.now(),
@@ -121,12 +167,12 @@
         try {
           res = oldMethod.apply(this, args);
         } catch (e) {
-          Logger.error(">> " + completePath + " failed:", e);
+          Logger.onFunctionCallError(completePath, e);
           myObj.error = e;
           myObj.errorDate = Date.now();
           throw e;
         }
-        Logger.debug(">> " + completePath + " succeeded:", res);
+        Logger.onFunctionCallSuccess(completePath, res);
         myObj.response = res;
         myObj.responseDate = Date.now();
         return res;
@@ -150,22 +196,19 @@
 
       Object.defineProperty(obj, propertyName, {
         get: function get() {
+          Logger.onPropertyAccess(completePath, value);
           var value = oldDescriptor.get.bind(this)();
-
           var myObj = {
             self: this,
             date: Date.now(),
             value: value
           };
-
           if (!logObj[propertyName]) {
             logObj[propertyName] = {
               get: []
             };
           }
           logObj[propertyName].get.push(myObj);
-
-          Logger.debug(">> Getting " + completePath + ":", value);
           return value;
         }
       });
@@ -188,8 +231,8 @@
 
       Object.defineProperty(obj, propertyName, {
         get: function get() {
+          Logger.onPropertyAccess(completePath, value);
           var value = oldDescriptor.get.bind(this)();
-
           var myObj = {
             self: this,
             date: Date.now(),
@@ -204,12 +247,10 @@
           }
           logObj[propertyName].get.push(myObj);
 
-          Logger.debug(">> Getting " + completePath + ":", value);
           return value;
         },
         set: function set(value) {
-          Logger.debug(">> Setting " + completePath + ":", value);
-
+          Logger.onSettingProperty(completePath, value);
           var myObj = {
             self: this,
             date: Date.now(),
@@ -233,85 +274,146 @@
     }
   }
 
+  var MEDIASOURCE_SPY_OBJECT = {
+    readOnlyProperties: ["sourceBuffers", "activeSourceBuffers", "readyState"],
+    properties: ["duration", "onsourceopen", "onsourceended", "onsourceclose"],
+    staticMethods: ["isTypeSupported"],
+    methods: ["addEventListener", "removeEventListener", "dispatchEvent", "addSourceBuffer", "removeSourceBuffer", "endOfStream", "setLiveSeekableRange", "clearLiveSeekableRange"]
+  };
+
   var NativeMediaSourceProtoDescriptors = Object.getOwnPropertyDescriptors(NativeMediaSource.prototype);
 
-  var NativeMediaSourceIsTypeSupported = NativeMediaSource.isTypeSupported;
+  var NativeMediaSourceStaticMethods = MEDIASOURCE_SPY_OBJECT.staticMethods.reduce(function (acc, methodName) {
+    acc[methodName] = NativeMediaSource[methodName];
+    return acc;
+  }, {});
+  var NativeMediaSourceMethods = MEDIASOURCE_SPY_OBJECT.methods.reduce(function (acc, methodName) {
+    acc[methodName] = NativeMediaSource.prototype[methodName];
+    return acc;
+  }, {});
 
   function StubbedMediaSource() {
     for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
       args[_key] = arguments[_key];
     }
 
-    if (args.length) {
-      Logger.debug(">>> Creating MediaSource with arguments:", args);
-    } else {
-      Logger.debug(">>> Creating MediaSource");
+    Logger.onObjectInstanciation("MediaSource", args);
+    var now = Date.now();
+    var spyObj = {
+      date: now,
+      args: args
+    };
+    MSE_CALLS.MediaSource.new.push(spyObj);
+    var nativeMediaSource = void 0;
+    try {
+      nativeMediaSource = new (Function.prototype.bind.apply(NativeMediaSource, [null].concat(args)))();
+    } catch (e) {
+      Logger.onObjectInstanciationError("MediaSource", e);
+      spyObj.error = e;
+      spyObj.errorDate = Date.now();
+      throw e;
     }
-    var nativeMediaSource = new (Function.prototype.bind.apply(NativeMediaSource, [null].concat(args)))();
-    Logger.debug(">>> MediaSource created:", nativeMediaSource);
-    stubReadOnlyProperties(nativeMediaSource, NativeMediaSourceProtoDescriptors, ["sourceBuffers", "activeSourceBuffers", "readyState"], "MediaSource.prototype", MSE_CALLS.MediaSource.properties);
-    stubProperties(nativeMediaSource, NativeMediaSourceProtoDescriptors, ["duration", "onsourceopen", "onsourceended", "onsourceclose"], "MediaSource.prototype", MSE_CALLS.MediaSource.properties);
-    stubRegularMethods(nativeMediaSource, ["addEventListener", "removeEventListener", "dispatchEvent", "addSourceBuffer", "removeSourceBuffer", "endOfStream", "setLiveSeekableRange", "clearLiveSeekableRange"], "MediaSource.prototype", MSE_CALLS.MediaSource.methods);
-
+    Logger.onObjectInstanciationSuccess("MediaSource", nativeMediaSource);
+    spyObj.response = nativeMediaSource;
+    spyObj.responseDate = Date.now();
     return nativeMediaSource;
   }
 
   function spyOnMediaSource() {
-    stubRegularMethods(NativeMediaSource, ["isTypeSupported"], "MediaSource.isTypeSupported", MSE_CALLS.MediaSource.methods);
+    stubReadOnlyProperties(NativeMediaSource.prototype, NativeMediaSourceProtoDescriptors, MEDIASOURCE_SPY_OBJECT.readOnlyProperties, "MediaSource.prototype", MSE_CALLS.MediaSource.properties);
+    stubRegularMethods(NativeMediaSource, MEDIASOURCE_SPY_OBJECT.staticMethods, "MediaSource", MSE_CALLS.MediaSource.methods);
+    stubProperties(NativeMediaSource.prototype, NativeMediaSourceProtoDescriptors, MEDIASOURCE_SPY_OBJECT.properties, "MediaSource.prototype", MSE_CALLS.MediaSource.properties);
+    stubRegularMethods(NativeMediaSource.prototype, MEDIASOURCE_SPY_OBJECT.methods, "MediaSource.prototype", MSE_CALLS.MediaSource.methods);
     window.MediaSource = StubbedMediaSource;
   }
 
   function stopSpyingOnMediaSource() {
+    Object.defineProperties(NativeMediaSource.prototype, MEDIASOURCE_SPY_OBJECT.properties.concat(MEDIASOURCE_SPY_OBJECT.readOnlyProperties).reduce(function (acc, propertyName) {
+      acc[propertyName] = NativeMediaSourceProtoDescriptors[propertyName];
+    }, {}));
+    MEDIASOURCE_SPY_OBJECT.staticMethods.forEach(function (methodName) {
+      NativeMediaSource[methodName] = NativeMediaSourceStaticMethods[methodName];
+    });
+    MEDIASOURCE_SPY_OBJECT.methods.forEach(function (methodName) {
+      NativeMediaSource.prototype[methodName] = NativeMediaSourceMethods[methodName];
+    });
     window.MediaSource = NativeMediaSource;
-    window.MediaSource.isTypeSupported = NativeMediaSourceIsTypeSupported;
   }
+
+  var SOURCEBUFFER_SPY_OBJECT = {
+    readOnlyProperties: ["updating", "buffered"],
+    properties: ["mode", "timestampOffset", "appendWindowStart", "appendWindowEnd", "onupdate", "onupdatestart", "onupdateend", "onerror", "onabort"],
+    staticMethods: [],
+    methods: ["addEventListener", "removeEventListener", "dispatchEvent", "appendBuffer", "abort", "remove"]
+  };
 
   var NativeSourceBufferProtoDescriptors = Object.getOwnPropertyDescriptors(NativeSourceBuffer.prototype);
 
-  var NativeSourceBufferAddEventListener = NativeSourceBuffer.prototype.addEventListener;
-  var NativeSourceBufferRemoveEventListener = NativeSourceBuffer.prototype.removeEventListener;
-  var NativeSourceBufferDispatchEvent = NativeSourceBuffer.prototype.dispatchEvent;
-  var NativeSourceBufferAppendBuffer = NativeSourceBuffer.prototype.appendBuffer;
-  var NativeSourceBufferAbort = NativeSourceBuffer.prototype.abort;
-  var NativeSourceBufferRemove = NativeSourceBuffer.prototype.remove;
+  var NativeSourceBufferStaticMethods = SOURCEBUFFER_SPY_OBJECT.staticMethods.reduce(function (acc, methodName) {
+    acc[methodName] = NativeSourceBuffer[methodName];
+    return acc;
+  }, {});
+  var NativeSourceBufferMethods = SOURCEBUFFER_SPY_OBJECT.methods.reduce(function (acc, methodName) {
+    acc[methodName] = NativeSourceBuffer.prototype[methodName];
+    return acc;
+  }, {});
+
+  function StubbedSourceBuffer() {
+    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    Logger.onObjectInstanciation("SourceBuffer", args);
+    var now = Date.now();
+    var spyObj = {
+      date: now,
+      args: args
+    };
+    MSE_CALLS.SourceBuffer.new.push(spyObj);
+    var nativeSourceBuffer = void 0;
+    try {
+      nativeSourceBuffer = new (Function.prototype.bind.apply(NativeSourceBuffer, [null].concat(args)))();
+    } catch (e) {
+      Logger.onObjectInstanciationError("SourceBuffer", e);
+      spyObj.error = e;
+      spyObj.errorDate = Date.now();
+      throw e;
+    }
+    Logger.onObjectInstanciationSuccess("SourceBuffer", nativeSourceBuffer);
+    spyObj.response = nativeSourceBuffer;
+    spyObj.responseDate = Date.now();
+    return nativeSourceBuffer;
+  }
 
   function spyOnSourceBuffer() {
-    stubReadOnlyProperties(NativeSourceBuffer.prototype, NativeSourceBufferProtoDescriptors, ["updating", "buffered"], "SourceBuffer.prototype", MSE_CALLS.SourceBuffer.properties);
-    stubProperties(NativeSourceBuffer.prototype, NativeSourceBufferProtoDescriptors, ["mode", "timestampOffset", "appendWindowStart", "appendWindowEnd", "onupdate", "onupdatestart", "onupdateend", "onerror", "onabort"], "SourceBuffer.prototype", MSE_CALLS.SourceBuffer.properties);
-    stubRegularMethods(NativeSourceBuffer.prototype, ["addEventListener", "removeEventListener", "dispatchEvent", "appendBuffer", "abort", "remove"], "SourceBuffer.prototype", MSE_CALLS.SourceBuffer.methods);
+    stubReadOnlyProperties(NativeSourceBuffer.prototype, NativeSourceBufferProtoDescriptors, SOURCEBUFFER_SPY_OBJECT.readOnlyProperties, "SourceBuffer.prototype", MSE_CALLS.SourceBuffer.properties);
+    stubProperties(NativeSourceBuffer.prototype, NativeSourceBufferProtoDescriptors, SOURCEBUFFER_SPY_OBJECT.properties, "SourceBuffer.prototype", MSE_CALLS.SourceBuffer.properties);
+    stubRegularMethods(NativeSourceBuffer.prototype, SOURCEBUFFER_SPY_OBJECT.methods, "SourceBuffer.prototype", MSE_CALLS.SourceBuffer.methods);
+    window.SourceBuffer = StubbedSourceBuffer;
   }
 
   function stopSpyingOnSourceBuffer() {
-    Object.defineProperties(NativeSourceBuffer.prototype, {
-      updating: NativeSourceBufferProtoDescriptors.updating,
-      buffered: NativeSourceBufferProtoDescriptors.buffered,
-      mode: NativeSourceBufferProtoDescriptors.mode,
-      timestampOffset: NativeSourceBufferProtoDescriptors.timestampOffset,
-      appendWindowStart: NativeSourceBufferProtoDescriptors.appendWindowStart,
-      appendWindowEnd: NativeSourceBufferProtoDescriptors.appendWindowEnd,
-      onupdate: NativeSourceBufferProtoDescriptors.onupdate,
-      onupdatestart: NativeSourceBufferProtoDescriptors.onupdatestart,
-      onupdateend: NativeSourceBufferProtoDescriptors.onupdateend,
-      onerror: NativeSourceBufferProtoDescriptors.onerror,
-      onabort: NativeSourceBufferProtoDescriptors.onabort
+    Object.defineProperties(NativeSourceBuffer.prototype, SOURCEBUFFER_SPY_OBJECT.properties.concat(SOURCEBUFFER_SPY_OBJECT.readOnlyProperties).reduce(function (acc, propertyName) {
+      acc[propertyName] = NativeSourceBufferProtoDescriptors[propertyName];
+    }, {}));
+    SOURCEBUFFER_SPY_OBJECT.staticMethods.forEach(function (methodName) {
+      NativeSourceBuffer[methodName] = NativeSourceBufferStaticMethods[methodName];
     });
-    NativeSourceBuffer.prototype.addEventListener = NativeSourceBufferAddEventListener;
-    NativeSourceBuffer.prototype.removeEventListener = NativeSourceBufferRemoveEventListener;
-    NativeSourceBuffer.prototype.dispatchEvent = NativeSourceBufferDispatchEvent;
-    NativeSourceBuffer.prototype.appendBuffer = NativeSourceBufferAppendBuffer;
-    NativeSourceBuffer.prototype.abort = NativeSourceBufferAbort;
-    NativeSourceBuffer.prototype.remove = NativeSourceBufferRemove;
+    SOURCEBUFFER_SPY_OBJECT.methods.forEach(function (methodName) {
+      NativeSourceBuffer.prototype[methodName] = NativeSourceBufferMethods[methodName];
+    });
+    window.SourceBuffer = NativeSourceBuffer;
   }
 
   /**
    * Start spying on MSE API calls.
    */
-  function activateMSESpy() {
+  function start() {
     spyOnMediaSource();
     spyOnSourceBuffer();
   }
 
-  function deactivateMSESpy() {
+  function stop() {
     stopSpyingOnMediaSource();
     stopSpyingOnSourceBuffer();
   }
@@ -319,8 +421,8 @@
   exports.getMSECalls = getMSECalls;
   exports.resetMSECalls = resetMSECalls;
   exports.Logger = Logger;
-  exports.activateMSESpy = activateMSESpy;
-  exports.deactivateMSESpy = deactivateMSESpy;
+  exports.start = start;
+  exports.stop = stop;
 
   Object.defineProperty(exports, '__esModule', { value: true });
 

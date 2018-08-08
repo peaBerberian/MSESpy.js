@@ -1,5 +1,4 @@
 import Logger from "./logger.js";
-import onAPICall from "./onAPICall.js";
 
 export default function stubRegularMethods(
   obj,
@@ -17,7 +16,7 @@ export default function stubRegularMethods(
     }
 
     obj[methodName] = function (...args) {
-      onAPICall(completePath, args);
+      Logger.onFunctionCall(completePath, args);
       const myObj = {
         self: obj,
         date: Date.now(),
@@ -33,12 +32,12 @@ export default function stubRegularMethods(
       try {
         res = oldMethod.apply(this, args);
       } catch (e) {
-        Logger.error(`>> ${completePath} failed:`, e);
+        Logger.onFunctionCallError(completePath, e);
         myObj.error = e;
         myObj.errorDate = Date.now();
         throw e;
       }
-      Logger.debug(`>> ${completePath} succeeded:`, res);
+      Logger.onFunctionCallSuccess(completePath, res);
       myObj.response = res;
       myObj.responseDate = Date.now();
       return res;

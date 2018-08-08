@@ -19,22 +19,19 @@ export default function stubReadOnlyProperties(
 
     Object.defineProperty(obj, propertyName, {
       get() {
+        Logger.onPropertyAccess(completePath, value);
         const value = oldDescriptor.get.bind(this)();
-
         const myObj = {
           self: this,
           date: Date.now(),
           value: value,
         };
-
         if (!logObj[propertyName]) {
           logObj[propertyName] = {
             get: [],
           };
         }
         logObj[propertyName].get.push(myObj);
-
-        Logger.debug(`>> Getting ${completePath}:`, value);
         return value;
       },
     });

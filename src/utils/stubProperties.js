@@ -19,8 +19,8 @@ export default function stubProperties(
 
     Object.defineProperty(obj, propertyName, {
       get() {
+        Logger.onPropertyAccess(completePath, value);
         const value = oldDescriptor.get.bind(this)();
-
         const myObj = {
           self: this,
           date: Date.now(),
@@ -35,12 +35,10 @@ export default function stubProperties(
         }
         logObj[propertyName].get.push(myObj);
 
-        Logger.debug(`>> Getting ${completePath}:`, value);
         return value;
       },
       set(value) {
-        Logger.debug(`>> Setting ${completePath}:`, value);
-
+        Logger.onSettingProperty(completePath, value);
         const myObj = {
           self: this,
           date: Date.now(),

@@ -1,25 +1,90 @@
 /**
- * Define the logger for startMSESpy.
+ * Define the logger for the MSE-spy.
  * Allows to re-define a specific logger on runtime / before applying this
  * script.
  * @type {Object}
  */
-const Logger = window.Logger || {
+const Logger = window.MSESpyLogger || {
   /* eslint-disable no-console */
-  log: function(...args) {
-    console.log(...args);
+
+  /**
+   * Triggered each time a property is accessed.
+   * @param {string} pathString - human-readable path to the property.
+   * @param {*} value - the value it currently has.
+   */
+  onPropertyAccess(pathString, value) {
+    console.debug(">>> Getting ${pathString}:", value);
   },
-  debug: function(...args) {
-    console.debug(...args);
+
+  /**
+   * Triggered each time a property is set.
+   * @param {string} pathString - human-readable path to the property.
+   * @param {*} value - the value it is set to.
+   */
+  onSettingProperty(pathString, value) {
+    console.debug(`>> Setting ${pathString}:`, value);
   },
-  info: function(...args) {
-    console.info(...args);
+
+  /**
+   * Triggered when some object is instanciated (just before).
+   * @param {string} objectName - human-readable name for the concerned object.
+   * @param {Array.<*>} args - Arguments given to the constructor
+   */
+  onObjectInstanciation(objectName, args) {
+    if (args.length) {
+      console.debug(">>> Creating ${objectName} with arguments:", args);
+    } else {
+      console.debug(">>> Creating ${objectName}");
+    }
   },
-  error: function(...args) {
-    console.error(...args);
+
+  /**
+   * Triggered when an Object instanciation failed.
+   * @param {string} objectName - human-readable name for the concerned object.
+   * @param {Error} error - Error thrown by the constructor
+   */
+  onObjectInstanciationError(objectName, error) {
+    console.error(">> ${objectName} creation failed:", error);
   },
-  warning: function(...args) {
-    console.warning(...args);
+
+  /**
+   * Triggered when an Object instanciation succeeded.
+   * @param {string} objectName - human-readable name for the concerned object.
+   * @param {*} value - The corresponding object instanciated.
+   */
+  onObjectInstanciationSuccess(objectName, value) {
+    console.debug(">>> ${objectName} created:", value);
+  },
+
+  /**
+   * Triggered when some method/function is called.
+   * @param {string} pathName - human-readable path for the concerned function.
+   * @param {Array.<*>} args - Arguments given to this function.
+   */
+  onFunctionCall(pathName, args) {
+    if (args.length) {
+      console.debug(`>>> ${pathName} called with arguments:`, args);
+    } else {
+      console.debug(`>>> ${pathName} called`);
+    }
+  },
+
+  /**
+   * Triggered when a function call fails.
+   * @param {string} pathName - human-readable path for the concerned function.
+   * @param {Error} error - Error thrown by the call
+   */
+  onFunctionCallError(pathName, error) {
+    console.error(`>> ${pathName} failed:`, error);
+  },
+
+  /**
+   * Triggered when a function call succeeded.
+   * @param {string} pathName - human-readable path for the concerned function.
+   * @param {*} value - The result of the function
+   */
+  onFunctionCallSuccess(pathName, value) {
+    console.info(">>> ${pathName} succeeded:", value);
   },
   /* eslint-enable no-console */
 };

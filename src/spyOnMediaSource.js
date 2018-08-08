@@ -7,72 +7,113 @@ import {
   NativeMediaSource,
 } from "./constants.js";
 
+const MEDIASOURCE_SPY_OBJECT = {
+  readOnlyProperties: [
+    "sourceBuffers",
+    "activeSourceBuffers",
+    "readyState",
+  ],
+  properties: [
+    "duration",
+    "onsourceopen",
+    "onsourceended",
+    "onsourceclose",
+  ],
+  staticMethods: [
+    "isTypeSupported",
+  ],
+  methods: [
+    "addEventListener",
+    "removeEventListener",
+    "dispatchEvent",
+    "addSourceBuffer",
+    "removeSourceBuffer",
+    "endOfStream",
+    "setLiveSeekableRange",
+    "clearLiveSeekableRange",
+  ],
+};
+
 const NativeMediaSourceProtoDescriptors =
   Object.getOwnPropertyDescriptors(NativeMediaSource.prototype);
 
-const NativeMediaSourceIsTypeSupported = NativeMediaSource.isTypeSupported;
+const NativeMediaSourceStaticMethods = MEDIASOURCE_SPY_OBJECT.staticMethods
+  .reduce((acc, methodName) => {
+    acc[methodName] = NativeMediaSource[methodName];
+    return acc;
+  }, {});
+const NativeMediaSourceMethods = MEDIASOURCE_SPY_OBJECT.methods
+  .reduce((acc, methodName) => {
+    acc[methodName] = NativeMediaSource.prototype[methodName];
+    return acc;
+  }, {});
 
 function StubbedMediaSource(...args) {
-  if (args.length) {
-    Logger.debug(">>> Creating MediaSource with arguments:", args);
-  } else {
-    Logger.debug(">>> Creating MediaSource");
+  Logger.onObjectInstanciation("MediaSource", args);
+  const now = Date.now();
+  const spyObj = {
+    date: now,
+    args,
+  };
+  MSE_CALLS.MediaSource.new.push(spyObj);
+  let nativeMediaSource;
+  try {
+    nativeMediaSource = new NativeMediaSource(...args);
+  } catch (e) {
+    Logger.onObjectInstanciationError("MediaSource", e);
+    spyObj.error = e;
+    spyObj.errorDate = Date.now();
+    throw e;
   }
-  const nativeMediaSource = new NativeMediaSource(...args);
-  Logger.debug(">>> MediaSource created:", nativeMediaSource);
-  stubReadOnlyProperties(
-    nativeMediaSource,
-    NativeMediaSourceProtoDescriptors,
-    [
-      "sourceBuffers",
-      "activeSourceBuffers",
-      "readyState",
-    ],
-    "MediaSource.prototype",
-    MSE_CALLS.MediaSource.properties,
-  );
-  stubProperties(
-    nativeMediaSource,
-    NativeMediaSourceProtoDescriptors,
-    [
-      "duration",
-      "onsourceopen",
-      "onsourceended",
-      "onsourceclose",
-    ],
-    "MediaSource.prototype",
-    MSE_CALLS.MediaSource.properties,
-  );
-  stubRegularMethods(
-    nativeMediaSource,
-    [
-      "addEventListener",
-      "removeEventListener",
-      "dispatchEvent",
-      "addSourceBuffer",
-      "removeSourceBuffer",
-      "endOfStream",
-      "setLiveSeekableRange",
-      "clearLiveSeekableRange",
-    ],
-    "MediaSource.prototype",
-    MSE_CALLS.MediaSource.methods,
-  );
-
+  Logger.onObjectInstanciationSuccess("MediaSource", nativeMediaSource);
+  spyObj.response = nativeMediaSource;
+  spyObj.responseDate = Date.now();
   return nativeMediaSource;
 }
 
 export default function spyOnMediaSource() {
+  stubReadOnlyProperties(
+    NativeMediaSource.prototype,
+    NativeMediaSourceProtoDescriptors,
+    MEDIASOURCE_SPY_OBJECT.readOnlyProperties,
+    "MediaSource.prototype",
+    MSE_CALLS.MediaSource.properties,
+  );
   stubRegularMethods(
     NativeMediaSource,
-    ["isTypeSupported"],
-    "MediaSource.isTypeSupported",
+    MEDIASOURCE_SPY_OBJECT.staticMethods,
+    "MediaSource",
+    MSE_CALLS.MediaSource.methods,
+  );
+  stubProperties(
+    NativeMediaSource.prototype,
+    NativeMediaSourceProtoDescriptors,
+    MEDIASOURCE_SPY_OBJECT.properties,
+    "MediaSource.prototype",
+    MSE_CALLS.MediaSource.properties,
+  );
+  stubRegularMethods(
+    NativeMediaSource.prototype,
+    MEDIASOURCE_SPY_OBJECT.methods,
+    "MediaSource.prototype",
     MSE_CALLS.MediaSource.methods,
   );
   window.MediaSource = StubbedMediaSource;
 }
 
 export function stopSpyingOnMediaSource() {
+  Object.defineProperties(NativeMediaSource.prototype,
+    MEDIASOURCE_SPY_OBJECT.properties
+      .concat(MEDIASOURCE_SPY_OBJECT.readOnlyProperties)
+      .reduce((acc, propertyName) => {
+        acc[propertyName] = NativeMediaSourceProtoDescriptors[propertyName];
+      }, {})
+  );
+  MEDIASOURCE_SPY_OBJECT.staticMethods.forEach((methodName) => {
+    NativeMediaSource[methodName] = NativeMediaSourceStaticMethods[methodName];
+  });
+  MEDIASOURCE_SPY_OBJECT.methods.forEach((methodName) => {
+    NativeMediaSource.prototype[methodName] = NativeMediaSourceMethods[methodName];
+  });
   window.MediaSource = NativeMediaSource;
-  window.MediaSource.isTypeSupported = NativeMediaSourceIsTypeSupported;
 }

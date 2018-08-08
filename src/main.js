@@ -13,12 +13,12 @@ import spyOnSourceBuffer, {
 /**
  * Start spying on MSE API calls.
  */
-function activateMSESpy() {
+function start() {
   spyOnMediaSource();
   spyOnSourceBuffer();
 }
 
-function deactivateMSESpy() {
+function stop() {
   stopSpyingOnMediaSource();
   stopSpyingOnSourceBuffer();
 }
@@ -27,6 +27,6 @@ export {
   getMSECalls,
   resetMSECalls,
   Logger,
-  activateMSESpy,
-  deactivateMSESpy,
+  start,
+  stop,
 };
