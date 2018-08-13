@@ -12,46 +12,46 @@ It logs and registers when any of the following actions take place:
   1. A MediaSource object is instanciated
 
   2. the following MediaSource methods are called:
-    - ``MediaSource.prototype.addSourceBuffer``
-    - ``MediaSource.prototype.removeSourceBuffer``
-    - ``MediaSource.prototype.endOfStream``
-    - ``MediaSource.prototype.setLiveSeekableRange``
-    - ``MediaSource.prototype.clearLiveSeekableRange``
-    - ``MediaSource.isTypeSupported``
-    - ``MediaSource.prototype.addEventListener``
-    - ``MediaSource.prototype.removeEventListener``
-    - ``MediaSource.prototype.dispatchEvent``
+   - ``MediaSource.prototype.addSourceBuffer``
+   - ``MediaSource.prototype.removeSourceBuffer``
+   - ``MediaSource.prototype.endOfStream``
+   - ``MediaSource.prototype.setLiveSeekableRange``
+   - ``MediaSource.prototype.clearLiveSeekableRange``
+   - ``MediaSource.isTypeSupported``
+   - ``MediaSource.prototype.addEventListener``
+   - ``MediaSource.prototype.removeEventListener``
+   - ``MediaSource.prototype.dispatchEvent``
 
   3. Those MediaSource properties are get/set:
-    - ``MediaSource.prototype.duration``
-    - ``MediaSource.prototype.onsourceopen``
-    - ``MediaSource.prototype.onsourceended``
-    - ``MediaSource.prototype.onsourceclose``
-    - ``MediaSource.prototype.sourceBuffers``
-    - ``MediaSource.prototype.activeSourceBuffers``
-    - ``MediaSource.prototype.readyState``
+   - ``MediaSource.prototype.duration``
+   - ``MediaSource.prototype.onsourceopen``
+   - ``MediaSource.prototype.onsourceended``
+   - ``MediaSource.prototype.onsourceclose``
+   - ``MediaSource.prototype.sourceBuffers``
+   - ``MediaSource.prototype.activeSourceBuffers``
+   - ``MediaSource.prototype.readyState``
 
   4. Those SourceBuffer methods are called:
-    - ``SourceBuffer.prototype.appendBuffer``
-    - ``SourceBuffer.prototype.abort``
-    - ``SourceBuffer.prototype.remove``
-    - ``SourceBuffer.prototype.appendBuffer``
-    - ``SourceBuffer.prototype.addEventListener``
-    - ``SourceBuffer.prototype.removeEventListener``
-    - ``SourceBuffer.prototype.dispatchEvent``
+   - ``SourceBuffer.prototype.appendBuffer``
+   - ``SourceBuffer.prototype.abort``
+   - ``SourceBuffer.prototype.remove``
+   - ``SourceBuffer.prototype.appendBuffer``
+   - ``SourceBuffer.prototype.addEventListener``
+   - ``SourceBuffer.prototype.removeEventListener``
+   - ``SourceBuffer.prototype.dispatchEvent``
 
   5. Those SourceBuffer properties are get/set:
-    - ``SourceBuffer.prototype.mode``
-    - ``SourceBuffer.prototype.timestampOffset``
-    - ``SourceBuffer.prototype.appendWindowStart``
-    - ``SourceBuffer.prototype.appendWindowEnd``
-    - ``SourceBuffer.prototype.onupdate``
-    - ``SourceBuffer.prototype.onupdatestart``
-    - ``SourceBuffer.prototype.onupdateend``
-    - ``SourceBuffer.prototype.onerror``
-    - ``SourceBuffer.prototype.onabort``
-    - ``SourceBuffer.prototype.updating``
-    - ``SourceBuffer.prototype.buffered``
+   - ``SourceBuffer.prototype.mode``
+   - ``SourceBuffer.prototype.timestampOffset``
+   - ``SourceBuffer.prototype.appendWindowStart``
+   - ``SourceBuffer.prototype.appendWindowEnd``
+   - ``SourceBuffer.prototype.onupdate``
+   - ``SourceBuffer.prototype.onupdatestart``
+   - ``SourceBuffer.prototype.onupdateend``
+   - ``SourceBuffer.prototype.onerror``
+   - ``SourceBuffer.prototype.onabort``
+   - ``SourceBuffer.prototype.updating``
+   - ``SourceBuffer.prototype.buffered``
 
 The registered data is:
 
