@@ -9,9 +9,13 @@ import spyOnSourceBuffer from "./spyOnSourceBuffer.js";
 let resetSpies = null;
 
 /**
- * Start spying on MSE API calls.
+ * Start/restart spying on MSE API calls.
  */
 function start() {
+  if (resetSpies) {
+    resetSpies();
+  }
+
   const resetSpyFunctions = [];
   const resetMediaSource = spyOnMediaSource();
   if (resetMediaSource) {
