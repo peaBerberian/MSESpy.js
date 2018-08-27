@@ -104,6 +104,7 @@ export function stopSpyingOnSourceBuffer() {
       .concat(SOURCEBUFFER_SPY_OBJECT.readOnlyProperties)
       .reduce((acc, propertyName) => {
         acc[propertyName] = NativeSourceBufferProtoDescriptors[propertyName];
+        return acc;
       }, {})
   );
   SOURCEBUFFER_SPY_OBJECT.staticMethods.forEach((methodName) => {

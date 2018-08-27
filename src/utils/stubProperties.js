@@ -19,8 +19,8 @@ export default function stubProperties(
 
     Object.defineProperty(obj, propertyName, {
       get() {
-        Logger.onPropertyAccess(completePath, value);
         const value = oldDescriptor.get.bind(this)();
+        Logger.onPropertyAccess(completePath, value);
         const myObj = {
           self: this,
           date: Date.now(),

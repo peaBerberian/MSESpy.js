@@ -13,7 +13,7 @@ const Logger = window.MSESpyLogger || {
    * @param {*} value - the value it currently has.
    */
   onPropertyAccess(pathString, value) {
-    console.debug(">>> Getting ${pathString}:", value);
+    console.debug(`>>> Getting ${pathString}:`, value);
   },
 
   /**
@@ -32,9 +32,9 @@ const Logger = window.MSESpyLogger || {
    */
   onObjectInstanciation(objectName, args) {
     if (args.length) {
-      console.debug(">>> Creating ${objectName} with arguments:", args);
+      console.debug(`>>> Creating ${objectName} with arguments:`, args);
     } else {
-      console.debug(">>> Creating ${objectName}");
+      console.debug(`>>> Creating ${objectName}`);
     }
   },
 
@@ -44,7 +44,7 @@ const Logger = window.MSESpyLogger || {
    * @param {Error} error - Error thrown by the constructor
    */
   onObjectInstanciationError(objectName, error) {
-    console.error(">> ${objectName} creation failed:", error);
+    console.error(`>> ${objectName} creation failed:`, error);
   },
 
   /**
@@ -53,7 +53,7 @@ const Logger = window.MSESpyLogger || {
    * @param {*} value - The corresponding object instanciated.
    */
   onObjectInstanciationSuccess(objectName, value) {
-    console.debug(">>> ${objectName} created:", value);
+    console.debug(`>>> ${objectName} created:`, value);
   },
 
   /**
@@ -84,7 +84,7 @@ const Logger = window.MSESpyLogger || {
    * @param {*} value - The result of the function
    */
   onFunctionCallSuccess(pathName, value) {
-    console.info(">>> ${pathName} succeeded:", value);
+    console.info(`>>> ${pathName} succeeded:`, value);
   },
   /* eslint-enable no-console */
 };

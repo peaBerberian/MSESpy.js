@@ -85,6 +85,9 @@ export default function spyOnMediaSource() {
     "MediaSource",
     MSE_CALLS.MediaSource.methods,
   );
+  MEDIASOURCE_SPY_OBJECT.staticMethods.forEach((method) => {
+    StubbedMediaSource[method] = NativeMediaSource[method].bind(NativeMediaSource);
+  });
   stubProperties(
     NativeMediaSource.prototype,
     NativeMediaSourceProtoDescriptors,
@@ -107,6 +110,7 @@ export function stopSpyingOnMediaSource() {
       .concat(MEDIASOURCE_SPY_OBJECT.readOnlyProperties)
       .reduce((acc, propertyName) => {
         acc[propertyName] = NativeMediaSourceProtoDescriptors[propertyName];
+        return acc;
       }, {})
   );
   MEDIASOURCE_SPY_OBJECT.staticMethods.forEach((methodName) => {
