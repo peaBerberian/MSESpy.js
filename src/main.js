@@ -12,10 +12,15 @@ const resetSpyFunctions = [];
  * Start spying on MSE API calls.
  */
 function start() {
-  resetSpyFunctions.push(spyOnMediaSource());
-  resetSpyFunctions.push(spyOnSourceBuffer());
+  if (resetSpyFunctions.length == 0) {
+    resetSpyFunctions.push(spyOnMediaSource());
+    resetSpyFunctions.push(spyOnSourceBuffer());
+  }
 }
 
+/**
+ * Stop spying on MSE API calls.
+ */
 function stop() {
   resetSpyFunctions.forEach(fn => { fn(); });
   resetSpyFunctions.length = 0;
