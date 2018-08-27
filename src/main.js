@@ -6,24 +6,37 @@ import Logger from "./utils/logger.js";
 import spyOnMediaSource from "./spyOnMediaSource.js";
 import spyOnSourceBuffer from "./spyOnSourceBuffer.js";
 
-const resetSpyFunctions = [];
+let resetSpies = null;
 
 /**
  * Start spying on MSE API calls.
  */
 function start() {
-  if (resetSpyFunctions.length == 0) {
-    resetSpyFunctions.push(spyOnMediaSource());
-    resetSpyFunctions.push(spyOnSourceBuffer());
+  const resetSpyFunctions = [];
+  const resetMediaSource = spyOnMediaSource();
+  if (resetMediaSource) {
+    resetSpyFunctions.push(resetMediaSource);
   }
+
+  const resetSourceBuffer = spyOnSourceBuffer();
+  if (resetSourceBuffer) {
+    resetSpyFunctions.push(resetSourceBuffer);
+  }
+
+  resetSpies = function resetEverySpies() {
+    resetSpyFunctions.forEach(fn => { fn && fn(); });
+    resetSpyFunctions.length = 0;
+    resetSpies = null;
+  };
 }
 
 /**
  * Stop spying on MSE API calls.
  */
 function stop() {
-  resetSpyFunctions.forEach(fn => { fn(); });
-  resetSpyFunctions.length = 0;
+  if (resetSpies) {
+    resetSpies();
+  }
 }
 
 export {
