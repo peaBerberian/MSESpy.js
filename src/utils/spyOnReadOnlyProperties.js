@@ -28,8 +28,8 @@ import generateId from "./generate_id.js";
  *
  *  - self {Object}: Reference to the baseObject argument.
  *
- *  - id {number}: a uniquely generated ascending ID for any stubbed
- *    property/methods with this library.
+ *  - id {number}: a uniquely generated ID for any stubbed property/methods with
+ *    this library.
  *
  *  - date {number}: Timestamp at the time of the property access.
  *

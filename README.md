@@ -154,6 +154,9 @@ Here is its basic structure:
     new: [  // An entry is added each time a MediaSource is created.
             // Empty array by default.
       {
+        id: 1, // {number} unique id, generated in ascending order for any
+               // entry.
+               // Generated here at the time of MediaSource creation.
         date: 1533722155401, // {number} timestamp at which the call was made
         args: [], // {Array} Eventual arguments the constructor has been called
                   // with
@@ -178,6 +181,9 @@ Here is its basic structure:
         {
           self: mediaSource, // {Object} The value of `this` at the time of the
                              // call (usually the MediaSource)
+          id: 4, // {number} unique id, generated in ascending order for any
+                 // entry.
+                 // Generated here at the time of the call.
           date: 1533722155401, // {number} timestamp at which the call was made
           args: [], // {Array} Eventual arguments this method has been called
                     // with
@@ -205,6 +211,9 @@ Here is its basic structure:
           {
             self: mediaSource, // {MediaSource} The instance of the concerned
                                // mediaSource
+            id: 3, // {number} unique id, generated in ascending order for any
+                   // entry.
+                   // Generated here at the time of the access.
             date: 1533722155401, // {number} timestamp at which the property
                                  // was accessed
             value: 10 // {*} Content of the property as it was accessed
@@ -214,6 +223,9 @@ Here is its basic structure:
           {
             self: mediaSource, // {MediaSource} The instance of the concerned
                                // mediaSource
+            id: 2, // {number} unique id, generated in ascending order for any
+                   // entry.
+                   // Generated here at the time of the update.
             date: 1533722155401, // {number} timestamp at which the property
                                  // was set
             value: 15 // {*} Content the property was set to
@@ -309,14 +321,13 @@ Note: if the code above were to be implemented, you wouldn't have any logs
 displaying in the console, as all functions declared here are empty.
 You can look at ``src/utils/logger.js`` for default implementations.
 
-## Left to do
+
+
+## Left to do ##################################################################
 
 The next steps would be to:
 
   - register when event listeners are called and when they have finished their
     execution
-
-  - use performance.now and/or an incrementing ID to better pinpoint when the
-    calls or property access are made relatively to each other
 
   - simplify the MSECalls object exploitation

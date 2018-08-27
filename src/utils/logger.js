@@ -86,6 +86,24 @@ const Logger = window.MSESpyLogger || {
   onFunctionCallSuccess(pathName, value) {
     console.info(`>>> ${pathName} succeeded:`, value);
   },
+
+  /**
+   * Triggered when a function returned a Promise and that promise resolved.
+   * @param {string} pathName - human-readable path for the concerned function.
+   * @param {*} value - The value when the function resolved.
+   */
+  onFunctionPromiseResolve(pathName, value) {
+    console.info(`>>> ${pathName} resolved:`, value);
+  },
+
+  /**
+   * Triggered when a function returned a Promise and that promise rejected.
+   * @param {string} pathName - human-readable path for the concerned function.
+   * @param {*} value - The error when the function's promise rejected.
+   */
+  onFunctionPromiseReject(pathName, value) {
+    console.error(`>>> ${pathName} rejected:`, value);
+  },
   /* eslint-enable no-console */
 };
 

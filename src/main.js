@@ -3,24 +3,22 @@ import {
   resetMSECalls,
 } from "./constants.js";
 import Logger from "./utils/logger.js";
-import spyOnMediaSource, {
-  stopSpyingOnMediaSource,
-} from "./spyOnMediaSource.js";
-import spyOnSourceBuffer, {
-  stopSpyingOnSourceBuffer,
-} from "./spyOnSourceBuffer.js";
+import spyOnMediaSource from "./spyOnMediaSource.js";
+import spyOnSourceBuffer from "./spyOnSourceBuffer.js";
+
+const resetSpyFunctions = [];
 
 /**
  * Start spying on MSE API calls.
  */
 function start() {
-  spyOnMediaSource();
-  spyOnSourceBuffer();
+  resetSpyFunctions.push(spyOnMediaSource());
+  resetSpyFunctions.push(spyOnSourceBuffer());
 }
 
 function stop() {
-  stopSpyingOnMediaSource();
-  stopSpyingOnSourceBuffer();
+  resetSpyFunctions.forEach(fn => { fn(); });
+  resetSpyFunctions.length = 0;
 }
 
 export {

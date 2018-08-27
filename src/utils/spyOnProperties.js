@@ -2,7 +2,7 @@ import Logger from "./logger.js";
 import generateId from "./generate_id.js";
 
 /**
- * Spy access and updates of an Object's read-only properties:
+ * Spy access and updates of an Object's read & write properties:
  *   - log every access/updates
  *   - add entries in a logging object
  *
@@ -21,26 +21,41 @@ import generateId from "./generate_id.js";
  * will be added.
  * The methods' name will be the key of the object.
  *
- * The values will be an object with a single key ``get``, corresponding to
- * property accesses
+ * The values will be an object with two keys ``get`` and ``set``, respectively
+ * for property accesses and property updates.
  *
- * This key will then have as value an array of object.
+ * Each one of those properties will then have as values an array of object.
+ * Those objects are under the following form:
  *
- *  - self {Object}: Reference to the baseObject argument.
+ *  1. for `get` (property access):
+ *
+ *   - self {Object}: Reference to the baseObject argument.
  *
  *  - id {number}: a uniquely generated ascending ID for any stubbed
  *    property/methods with this library.
  *
- *  - date {number}: Timestamp at the time of the property access.
+ *   - date {number}: Timestamp at the time of the property access.
  *
- *  - value {*}: value of the property at the time of access.
+ *   - value {*}: value of the property at the time of access.
+ *
+ *
+ *  2. for `set` (property updates):
+ *
+ *   - self {Object}: Reference to the baseObject argument.
+ *
+ *  - id {number}: a uniquely generated ascending ID for any stubbed
+ *    property/methods with this library.
+ *
+ *   - date {number}: Timestamp at the time of the property update.
+ *
+ *   - value {*}: new value the property is set to
  */
-export default function spyOnReadOnlyProperties(
+export default function spyOnProperties(
   baseObject,
   baseDescriptors,
   propertyNames,
   humanReadablePath,
-  logObject,
+  logObject
 ) {
   for (let i = 0; i < propertyNames.length; i++) {
     const propertyName = propertyNames[i];
@@ -62,13 +77,34 @@ export default function spyOnReadOnlyProperties(
           date: Date.now(),
           value: value,
         };
+
         if (!logObject[propertyName]) {
           logObject[propertyName] = {
+            set: [],
             get: [],
           };
         }
         logObject[propertyName].get.push(currentLogObject);
+
         return value;
+      },
+      set(value) {
+        Logger.onSettingProperty(completePath, value);
+        const currentLogObject = {
+          self: this,
+          id: generateId(),
+          date: Date.now(),
+          value: value,
+        };
+
+        if (!logObject[propertyName]) {
+          logObject[propertyName] = {
+            set: [],
+            get: [],
+          };
+        }
+        logObject[propertyName].set.push(currentLogObject);
+        baseDescriptor.set.bind(this)(value);
       },
     });
   }
