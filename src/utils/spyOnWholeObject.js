@@ -20,19 +20,6 @@ export default function spyOnWholeObject(
     return;
   }
 
-  const BaseObjectProtoDescriptors =
-    Object.getOwnPropertyDescriptors(BaseObject.prototype);
-  const BaseObjectStaticMethods = staticMethodNames
-    .reduce((acc, methodName) => {
-      acc[methodName] = BaseObject[methodName];
-      return acc;
-    }, {});
-  const BaseObjectMethods = methodNames
-    .reduce((acc, methodName) => {
-      acc[methodName] = BaseObject.prototype[methodName];
-      return acc;
-    }, {});
-
   if (loggingObject[objectName] == null) {
     loggingObject[objectName] = {
       new: [],
@@ -66,7 +53,7 @@ export default function spyOnWholeObject(
     return baseObject;
   }
 
-  spyOnMethods(
+  const unspyStaticMethods = spyOnMethods(
     BaseObject,
     staticMethodNames,
     objectName,
@@ -75,21 +62,25 @@ export default function spyOnWholeObject(
   staticMethodNames.forEach((method) => {
     StubbedObject[method] = BaseObject[method].bind(BaseObject);
   });
-  spyOnReadOnlyProperties(
+
+  const BaseObjectProtoDescriptors =
+    Object.getOwnPropertyDescriptors(BaseObject.prototype);
+
+  const unspyReadOnlyProps = spyOnReadOnlyProperties(
     BaseObject.prototype,
     BaseObjectProtoDescriptors,
     readOnlyPropertyNames,
     `${objectName}.prototype`,
     loggingObject[objectName].properties,
   );
-  spyOnProperties(
+  const unspyProps = spyOnProperties(
     BaseObject.prototype,
     BaseObjectProtoDescriptors,
     propertyNames,
     `${objectName}.prototype`,
     loggingObject[objectName].properties,
   );
-  spyOnMethods(
+  const unspyMethods = spyOnMethods(
     BaseObject.prototype,
     methodNames,
     `${objectName}.prototype`,
@@ -99,20 +90,10 @@ export default function spyOnWholeObject(
   stubbedObjects.push(BaseObject);
 
   return function stopSpying() {
-    Object.defineProperties(BaseObject.prototype,
-      propertyNames
-        .concat(readOnlyPropertyNames)
-        .reduce((acc, propertyName) => {
-          acc[propertyName] = BaseObjectProtoDescriptors[propertyName];
-          return acc;
-        }, {})
-    );
-    staticMethodNames.forEach((methodName) => {
-      BaseObject[methodName] = BaseObjectStaticMethods[methodName];
-    });
-    methodNames.forEach((methodName) => {
-      BaseObject.prototype[methodName] = BaseObjectMethods[methodName];
-    });
+    unspyReadOnlyProps();
+    unspyProps();
+    unspyStaticMethods();
+    unspyMethods();
     window[objectName] = BaseObject;
   };
 }

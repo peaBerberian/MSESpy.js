@@ -49,6 +49,8 @@ import generateId from "./generate_id.js";
  *   - date {number}: Timestamp at the time of the property update.
  *
  *   - value {*}: new value the property is set to
+ *
+ * @returns {Function} - function which deactivates the spy when called.
  */
 export default function spyOnProperties(
   baseObject,
@@ -108,4 +110,14 @@ export default function spyOnProperties(
       },
     });
   }
+
+  return function stopSpyingOnProperties() {
+    Object.defineProperties(baseObject,
+      propertyNames
+        .reduce((acc, propertyName) => {
+          acc[propertyName] = baseDescriptors[propertyName];
+          return acc;
+        }, {})
+    );
+  };
 }

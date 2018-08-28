@@ -56,6 +56,8 @@ import generateId from "./generate_id.js";
  *   - responseRejectedDate {number}: When the returned value (the response) is
  *     a promise and that promise rejected, this property contains the date at
  *     which the promise rejected. Else, that property is not set.
+ *
+ * @returns {Function} - function which deactivates the spy when called.
  */
 export default function spyOnMethods(
   baseObject,
@@ -63,6 +65,12 @@ export default function spyOnMethods(
   humanReadablePath,
   logObject,
 ) {
+  const baseObjectMethods = methodNames
+    .reduce((acc, methodName) => {
+      acc[methodName] = baseObject[methodName];
+      return acc;
+    }, {});
+
   for (let i = 0; i < methodNames.length; i++) {
     const methodName = methodNames[i];
     const completePath = humanReadablePath + "." + methodName;
@@ -119,4 +127,11 @@ export default function spyOnMethods(
       return res;
     };
   }
+
+  return function stopSpyingOnMethods() {
+    for (let i = 0; i < methodNames.length; i++) {
+      const methodName = methodNames[i];
+      baseObject[methodName] = baseObjectMethods[methodName];
+    }
+  };
 }
