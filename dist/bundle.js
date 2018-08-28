@@ -206,8 +206,15 @@
    *   - responseRejectedDate {number}: When the returned value (the response) is
    *     a promise and that promise rejected, this property contains the date at
    *     which the promise rejected. Else, that property is not set.
+   *
+   * @returns {Function} - function which deactivates the spy when called.
    */
   function spyOnMethods(baseObject, methodNames, humanReadablePath, logObject) {
+    var baseObjectMethods = methodNames.reduce(function (acc, methodName) {
+      acc[methodName] = baseObject[methodName];
+      return acc;
+    }, {});
+
     var _loop = function _loop(i) {
       var methodName = methodNames[i];
       var completePath = humanReadablePath + "." + methodName;
@@ -271,6 +278,13 @@
     for (var i = 0; i < methodNames.length; i++) {
       _loop(i);
     }
+
+    return function stopSpyingOnMethods() {
+      for (var i = 0; i < methodNames.length; i++) {
+        var _methodName = methodNames[i];
+        baseObject[_methodName] = baseObjectMethods[_methodName];
+      }
+    };
   }
 
   /**
@@ -306,6 +320,8 @@
    *  - date {number}: Timestamp at the time of the property access.
    *
    *  - value {*}: value of the property at the time of access.
+   *
+   * @returns {Function} - function which deactivates the spy when called.
    */
   function spyOnReadOnlyProperties(baseObject, baseDescriptors, propertyNames, humanReadablePath, logObject) {
     var _loop = function _loop(i) {
@@ -341,6 +357,13 @@
     for (var i = 0; i < propertyNames.length; i++) {
       _loop(i);
     }
+
+    return function stopSpyingOnReadOnlyProperties() {
+      Object.defineProperties(baseObject, propertyNames.reduce(function (acc, propertyName) {
+        acc[propertyName] = baseDescriptors[propertyName];
+        return acc;
+      }, {}));
+    };
   }
 
   /**
@@ -391,6 +414,8 @@
    *   - date {number}: Timestamp at the time of the property update.
    *
    *   - value {*}: new value the property is set to
+   *
+   * @returns {Function} - function which deactivates the spy when called.
    */
   function spyOnProperties(baseObject, baseDescriptors, propertyNames, humanReadablePath, logObject) {
     var _loop = function _loop(i) {
@@ -447,6 +472,13 @@
     for (var i = 0; i < propertyNames.length; i++) {
       _loop(i);
     }
+
+    return function stopSpyingOnProperties() {
+      Object.defineProperties(baseObject, propertyNames.reduce(function (acc, propertyName) {
+        acc[propertyName] = baseDescriptors[propertyName];
+        return acc;
+      }, {}));
+    };
   }
 
   var stubbedObjects = [];
@@ -457,16 +489,6 @@
     if (stubbedObjects.includes(BaseObject)) {
       return;
     }
-
-    var BaseObjectProtoDescriptors = Object.getOwnPropertyDescriptors(BaseObject.prototype);
-    var BaseObjectStaticMethods = staticMethodNames.reduce(function (acc, methodName) {
-      acc[methodName] = BaseObject[methodName];
-      return acc;
-    }, {});
-    var BaseObjectMethods = methodNames.reduce(function (acc, methodName) {
-      acc[methodName] = BaseObject.prototype[methodName];
-      return acc;
-    }, {});
 
     if (loggingObject[objectName] == null) {
       loggingObject[objectName] = {
@@ -505,27 +527,24 @@
       return baseObject;
     }
 
-    spyOnMethods(BaseObject, staticMethodNames, objectName, loggingObject[objectName].staticMethods);
+    var unspyStaticMethods = spyOnMethods(BaseObject, staticMethodNames, objectName, loggingObject[objectName].staticMethods);
     staticMethodNames.forEach(function (method) {
       StubbedObject[method] = BaseObject[method].bind(BaseObject);
     });
-    spyOnReadOnlyProperties(BaseObject.prototype, BaseObjectProtoDescriptors, readOnlyPropertyNames, objectName + ".prototype", loggingObject[objectName].properties);
-    spyOnProperties(BaseObject.prototype, BaseObjectProtoDescriptors, propertyNames, objectName + ".prototype", loggingObject[objectName].properties);
-    spyOnMethods(BaseObject.prototype, methodNames, objectName + ".prototype", loggingObject[objectName].methods);
+
+    var BaseObjectProtoDescriptors = Object.getOwnPropertyDescriptors(BaseObject.prototype);
+
+    var unspyReadOnlyProps = spyOnReadOnlyProperties(BaseObject.prototype, BaseObjectProtoDescriptors, readOnlyPropertyNames, objectName + ".prototype", loggingObject[objectName].properties);
+    var unspyProps = spyOnProperties(BaseObject.prototype, BaseObjectProtoDescriptors, propertyNames, objectName + ".prototype", loggingObject[objectName].properties);
+    var unspyMethods = spyOnMethods(BaseObject.prototype, methodNames, objectName + ".prototype", loggingObject[objectName].methods);
     window[objectName] = StubbedObject;
     stubbedObjects.push(BaseObject);
 
     return function stopSpying() {
-      Object.defineProperties(BaseObject.prototype, propertyNames.concat(readOnlyPropertyNames).reduce(function (acc, propertyName) {
-        acc[propertyName] = BaseObjectProtoDescriptors[propertyName];
-        return acc;
-      }, {}));
-      staticMethodNames.forEach(function (methodName) {
-        BaseObject[methodName] = BaseObjectStaticMethods[methodName];
-      });
-      methodNames.forEach(function (methodName) {
-        BaseObject.prototype[methodName] = BaseObjectMethods[methodName];
-      });
+      unspyReadOnlyProps();
+      unspyProps();
+      unspyStaticMethods();
+      unspyMethods();
       window[objectName] = BaseObject;
     };
   }
@@ -578,21 +597,43 @@
     MSE_CALLS);
   }
 
-  var resetSpyFunctions = [];
+  var resetSpies = null;
 
   /**
-   * Start spying on MSE API calls.
+   * Start/restart spying on MSE API calls.
    */
   function start() {
-    resetSpyFunctions.push(spyOnMediaSource());
-    resetSpyFunctions.push(spyOnMediaSource$1());
+    if (resetSpies) {
+      resetSpies();
+    }
+
+    var resetSpyFunctions = [];
+    var resetMediaSource = spyOnMediaSource();
+    if (resetMediaSource) {
+      resetSpyFunctions.push(resetMediaSource);
+    }
+
+    var resetSourceBuffer = spyOnMediaSource$1();
+    if (resetSourceBuffer) {
+      resetSpyFunctions.push(resetSourceBuffer);
+    }
+
+    resetSpies = function resetEverySpies() {
+      resetSpyFunctions.forEach(function (fn) {
+        fn && fn();
+      });
+      resetSpyFunctions.length = 0;
+      resetSpies = null;
+    };
   }
 
+  /**
+   * Stop spying on MSE API calls.
+   */
   function stop() {
-    resetSpyFunctions.forEach(function (fn) {
-      fn();
-    });
-    resetSpyFunctions.length = 0;
+    if (resetSpies) {
+      resetSpies();
+    }
   }
 
   exports.getMSECalls = getMSECalls;
