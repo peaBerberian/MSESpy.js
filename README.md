@@ -102,6 +102,22 @@ or [Greasemonkey for Firefox
 ](https://addons.mozilla.org/en-US/firefox/addon/greasemonkey/).
 
 
+### Adding as a dependency #####################################################
+
+You can also add this module as a dependency through npm:
+```sh
+npm install mse-spy
+```
+
+Then use this module as you want.
+
+```js
+import MSESpy from "mse-spy";
+
+MSESpy.start();
+```
+
+
 
 ## API #########################################################################
 

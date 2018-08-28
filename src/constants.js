@@ -9,7 +9,7 @@ function getMSECalls() {
 }
 
 function resetMSECalls() {
-  Object.key(MSE_CALLS).forEach(key => {
+  Object.keys(MSE_CALLS).forEach(key => {
     delete MSE_CALLS[key];
   });
 }
