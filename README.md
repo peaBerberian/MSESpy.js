@@ -150,7 +150,7 @@ MSESpy.start();
 
 // You can also declare custom log functions
 // (More informations on it in the concerned chapter)
-MSESpy.Logger.debug = CustomLogger;
+MSESpy.Logger.onPropertyAccess = CustomLogger;
 ```
 
 
