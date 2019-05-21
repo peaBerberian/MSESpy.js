@@ -1,6 +1,6 @@
 {
   "name": "mse-spy",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Report every MSE API a webpage calls",
   "main": "dist/bundle.js",
   "scripts": {
