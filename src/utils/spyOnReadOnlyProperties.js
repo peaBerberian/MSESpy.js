@@ -81,7 +81,7 @@ export default function spyOnReadOnlyProperties(
         .reduce((acc, propertyName) => {
           acc[propertyName] = baseDescriptors[propertyName];
           return acc;
-        }, {})
+        }, {}),
     );
   };
 }

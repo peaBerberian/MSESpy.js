@@ -122,7 +122,7 @@ export default function spyOnMethods(
             Logger.onFunctionPromiseReject(completePath, err);
             currentLogObject.responseRejected = err;
             currentLogObject.responseRejectedDate = Date.now();
-          }
+          },
         );
       }
       return res;
