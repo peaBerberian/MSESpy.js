@@ -9,8 +9,6 @@ export default {
     name: "MSESpy",
   },
   plugins: [
-    babel({
-      exclude: "node_modules/**", // only transpile our source code
-    }),
+    babel({ }),
   ],
 };
