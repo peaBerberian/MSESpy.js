@@ -9,17 +9,14 @@
    * @type {Object}
    */
   var MSE_CALLS = {};
-
   function getMSECalls() {
     return MSE_CALLS;
   }
-
   function resetMSECalls() {
     Object.keys(MSE_CALLS).forEach(function (key) {
       delete MSE_CALLS[key];
     });
   }
-
   var NativeMediaSource = window.MediaSource;
   var NativeSourceBuffer = window.SourceBuffer;
 
@@ -31,7 +28,6 @@
    */
   var Logger = window.MSESpyLogger || {
     /* eslint-disable no-console */
-
     /**
      * Triggered each time a property is accessed.
      * @param {string} pathString - human-readable path to the property.
@@ -40,7 +36,6 @@
     onPropertyAccess: function onPropertyAccess(pathString, value) {
       console.debug(">>> Getting ".concat(pathString, ":"), value);
     },
-
     /**
      * Triggered each time a property is set.
      * @param {string} pathString - human-readable path to the property.
@@ -49,7 +44,6 @@
     onSettingProperty: function onSettingProperty(pathString, value) {
       console.debug(">> Setting ".concat(pathString, ":"), value);
     },
-
     /**
      * Triggered when some object is instanciated (just before).
      * @param {string} objectName - human-readable name for the concerned object.
@@ -62,7 +56,6 @@
         console.debug(">>> Creating ".concat(objectName));
       }
     },
-
     /**
      * Triggered when an Object instanciation failed.
      * @param {string} objectName - human-readable name for the concerned object.
@@ -71,7 +64,6 @@
     onObjectInstanciationError: function onObjectInstanciationError(objectName, error) {
       console.error(">> ".concat(objectName, " creation failed:"), error);
     },
-
     /**
      * Triggered when an Object instanciation succeeded.
      * @param {string} objectName - human-readable name for the concerned object.
@@ -80,7 +72,6 @@
     onObjectInstanciationSuccess: function onObjectInstanciationSuccess(objectName, value) {
       console.debug(">>> ".concat(objectName, " created:"), value);
     },
-
     /**
      * Triggered when some method/function is called.
      * @param {string} pathName - human-readable path for the concerned function.
@@ -93,7 +84,6 @@
         console.debug(">>> ".concat(pathName, " called"));
       }
     },
-
     /**
      * Triggered when a function call fails.
      * @param {string} pathName - human-readable path for the concerned function.
@@ -102,7 +92,6 @@
     onFunctionCallError: function onFunctionCallError(pathName, error) {
       console.error(">> ".concat(pathName, " failed:"), error);
     },
-
     /**
      * Triggered when a function call succeeded.
      * @param {string} pathName - human-readable path for the concerned function.
@@ -111,7 +100,6 @@
     onFunctionCallSuccess: function onFunctionCallSuccess(pathName, value) {
       console.info(">>> ".concat(pathName, " succeeded:"), value);
     },
-
     /**
      * Triggered when a function returned a Promise and that promise resolved.
      * @param {string} pathName - human-readable path for the concerned function.
@@ -120,7 +108,6 @@
     onFunctionPromiseResolve: function onFunctionPromiseResolve(pathName, value) {
       console.info(">>> ".concat(pathName, " resolved:"), value);
     },
-
     /**
      * Triggered when a function returned a Promise and that promise rejected.
      * @param {string} pathName - human-readable path for the concerned function.
@@ -128,25 +115,20 @@
      */
     onFunctionPromiseReject: function onFunctionPromiseReject(pathName, value) {
       console.error(">>> ".concat(pathName, " rejected:"), value);
-    }
-    /* eslint-enable no-console */
-
+    } /* eslint-enable no-console */
   };
 
   function _setPrototypeOf(o, p) {
-    _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) {
+    _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function _setPrototypeOf(o, p) {
       o.__proto__ = p;
       return o;
     };
-
     return _setPrototypeOf(o, p);
   }
-
   function _isNativeReflectConstruct() {
     if (typeof Reflect === "undefined" || !Reflect.construct) return false;
     if (Reflect.construct.sham) return false;
     if (typeof Proxy === "function") return true;
-
     try {
       Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {}));
       return true;
@@ -154,10 +136,9 @@
       return false;
     }
   }
-
   function _construct(Parent, args, Class) {
     if (_isNativeReflectConstruct()) {
-      _construct = Reflect.construct;
+      _construct = Reflect.construct.bind();
     } else {
       _construct = function _construct(Parent, args, Class) {
         var a = [null];
@@ -168,18 +149,17 @@
         return instance;
       };
     }
-
     return _construct.apply(null, arguments);
   }
 
   var id = 0;
+
   /**
    * Generate a new number each time it is called.
    * /!\ Never check for an upper-bound. Please do not use if you can reach
    * `Number.MAX_VALUE`
    * @returns {number}
    */
-
   function generateId() {
     return id++;
   }
@@ -242,28 +222,23 @@
    *
    * @returns {Function} - function which deactivates the spy when called.
    */
-
   function spyOnMethods(baseObject, methodNames, humanReadablePath, logObject) {
     var baseObjectMethods = methodNames.reduce(function (acc, methodName) {
       acc[methodName] = baseObject[methodName];
       return acc;
     }, {});
-
-    var _loop = function _loop(i) {
+    var _loop = function _loop() {
       var methodName = methodNames[i];
       var completePath = humanReadablePath + "." + methodName;
       var oldMethod = baseObject[methodName];
-
       if (!oldMethod) {
         console.warn("No method in " + completePath);
-        return "continue";
+        return 1; // continue
       }
-
       baseObject[methodName] = function () {
         for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
           args[_key] = arguments[_key];
         }
-
         Logger.onFunctionCall(completePath, args);
         var currentLogObject = {
           self: this,
@@ -271,14 +246,11 @@
           date: Date.now(),
           args: args
         };
-
         if (!logObject[methodName]) {
           logObject[methodName] = [];
         }
-
         logObject[methodName].push(currentLogObject);
         var res;
-
         try {
           res = oldMethod.apply(this, args);
         } catch (e) {
@@ -287,35 +259,30 @@
           currentLogObject.errorDate = Date.now();
           throw e;
         }
-
         Logger.onFunctionCallSuccess(completePath, res);
         currentLogObject.response = res;
         currentLogObject.responseDate = Date.now();
-
         if (res instanceof Promise) {
-          res.then( // on success
+          res.then(
+          // on success
           function (value) {
             Logger.onFunctionPromiseResolve(completePath, value);
             currentLogObject.responseResolved = value;
             currentLogObject.responseResolvedDate = Date.now();
-          }, // on error
+          },
+          // on error
           function (err) {
             Logger.onFunctionPromiseReject(completePath, err);
             currentLogObject.responseRejected = err;
             currentLogObject.responseRejectedDate = Date.now();
           });
         }
-
         return res;
       };
     };
-
     for (var i = 0; i < methodNames.length; i++) {
-      var _ret = _loop(i);
-
-      if (_ret === "continue") continue;
+      if (_loop()) continue;
     }
-
     return function stopSpyingOnMethods() {
       for (var _i = 0; _i < methodNames.length; _i++) {
         var methodName = methodNames[_i];
@@ -360,18 +327,15 @@
    *
    * @returns {Function} - function which deactivates the spy when called.
    */
-
   function spyOnReadOnlyProperties(baseObject, baseDescriptors, propertyNames, humanReadablePath, logObject) {
-    var _loop = function _loop(i) {
+    var _loop = function _loop() {
       var propertyName = propertyNames[i];
       var baseDescriptor = baseDescriptors[propertyName];
       var completePath = humanReadablePath + "." + propertyName;
-
       if (!baseDescriptor) {
         console.warn("No descriptor for property " + completePath);
-        return "continue";
+        return 1; // continue
       }
-
       Object.defineProperty(baseObject, propertyName, {
         get: function get() {
           var value = baseDescriptor.get.bind(this)();
@@ -382,25 +346,19 @@
             date: Date.now(),
             value: value
           };
-
           if (!logObject[propertyName]) {
             logObject[propertyName] = {
               get: []
             };
           }
-
           logObject[propertyName].get.push(currentLogObject);
           return value;
         }
       });
     };
-
     for (var i = 0; i < propertyNames.length; i++) {
-      var _ret = _loop(i);
-
-      if (_ret === "continue") continue;
+      if (_loop()) continue;
     }
-
     return function stopSpyingOnReadOnlyProperties() {
       Object.defineProperties(baseObject, propertyNames.reduce(function (acc, propertyName) {
         acc[propertyName] = baseDescriptors[propertyName];
@@ -460,18 +418,15 @@
    *
    * @returns {Function} - function which deactivates the spy when called.
    */
-
   function spyOnProperties(baseObject, baseDescriptors, propertyNames, humanReadablePath, logObject) {
-    var _loop = function _loop(i) {
+    var _loop = function _loop() {
       var propertyName = propertyNames[i];
       var baseDescriptor = baseDescriptors[propertyName];
       var completePath = humanReadablePath + "." + propertyName;
-
       if (!baseDescriptor) {
         console.warn("No descriptor for property " + completePath);
-        return "continue";
+        return 1; // continue
       }
-
       Object.defineProperty(baseObject, propertyName, {
         get: function get() {
           var value = baseDescriptor.get.bind(this)();
@@ -482,14 +437,12 @@
             date: Date.now(),
             value: value
           };
-
           if (!logObject[propertyName]) {
             logObject[propertyName] = {
               set: [],
               get: []
             };
           }
-
           logObject[propertyName].get.push(currentLogObject);
           return value;
         },
@@ -501,26 +454,20 @@
             date: Date.now(),
             value: value
           };
-
           if (!logObject[propertyName]) {
             logObject[propertyName] = {
               set: [],
               get: []
             };
           }
-
           logObject[propertyName].set.push(currentLogObject);
           baseDescriptor.set.bind(this)(value);
         }
       });
     };
-
     for (var i = 0; i < propertyNames.length; i++) {
-      var _ret = _loop(i);
-
-      if (_ret === "continue") continue;
+      if (_loop()) continue;
     }
-
     return function stopSpyingOnProperties() {
       Object.defineProperties(baseObject, propertyNames.reduce(function (acc, propertyName) {
         acc[propertyName] = baseDescriptors[propertyName];
@@ -534,11 +481,9 @@
     if (BaseObject == null || !BaseObject.prototype) {
       throw new Error("Invalid object");
     }
-
     if (stubbedObjects.includes(BaseObject)) {
       return;
     }
-
     if (loggingObject[objectName] == null) {
       loggingObject[objectName] = {
         "new": [],
@@ -546,7 +491,6 @@
         staticMethods: {},
         properties: {},
         eventListeners: {} // TODO
-
       };
     }
 
@@ -554,7 +498,6 @@
       for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
         args[_key] = arguments[_key];
       }
-
       Logger.onObjectInstanciation(objectName, args);
       var now = Date.now();
       var spyObj = {
@@ -563,7 +506,6 @@
       };
       loggingObject[objectName]["new"].push(spyObj);
       var baseObject;
-
       try {
         baseObject = _construct(BaseObject, args);
       } catch (e) {
@@ -572,13 +514,11 @@
         spyObj.errorDate = Date.now();
         throw e;
       }
-
       Logger.onObjectInstanciationSuccess(objectName, baseObject);
       spyObj.response = baseObject;
       spyObj.responseDate = Date.now();
       return baseObject;
     }
-
     var unspyStaticMethods = spyOnMethods(BaseObject, staticMethodNames, objectName, loggingObject[objectName].staticMethods);
     staticMethodNames.forEach(function (method) {
       StubbedObject[method] = BaseObject[method].bind(BaseObject);
@@ -599,50 +539,59 @@
   }
 
   function spyOnMediaSource$1() {
-    return spyOnWholeObject( // Object to spy on
-    NativeMediaSource, // name in window
-    "MediaSource", // read-only properties
-    ["sourceBuffers", "activeSourceBuffers", "readyState"], // regular properties
-    ["duration", "onsourceopen", "onsourceended", "onsourceclose"], // static methods
-    ["isTypeSupported"], // methods
-    ["addEventListener", "removeEventListener", "dispatchEvent", "addSourceBuffer", "removeSourceBuffer", "endOfStream", "setLiveSeekableRange", "clearLiveSeekableRange"], // global logging object
+    return spyOnWholeObject(
+    // Object to spy on
+    NativeMediaSource,
+    // name in window
+    "MediaSource",
+    // read-only properties
+    ["sourceBuffers", "activeSourceBuffers", "readyState"],
+    // regular properties
+    ["duration", "onsourceopen", "onsourceended", "onsourceclose"],
+    // static methods
+    ["isTypeSupported"],
+    // methods
+    ["addEventListener", "removeEventListener", "dispatchEvent", "addSourceBuffer", "removeSourceBuffer", "endOfStream", "setLiveSeekableRange", "clearLiveSeekableRange"],
+    // global logging object
     MSE_CALLS);
   }
 
   function spyOnMediaSource() {
-    return spyOnWholeObject( // Object to spy on
-    NativeSourceBuffer, // name in window
-    "SourceBuffer", // read-only properties
-    ["updating", "buffered"], // regular properties
-    ["mode", "timestampOffset", "appendWindowStart", "appendWindowEnd", "onupdate", "onupdatestart", "onupdateend", "onerror", "onabort"], // static methods
-    [], // methods
-    ["addEventListener", "removeEventListener", "dispatchEvent", "appendBuffer", "abort", "remove"], // global logging object
+    return spyOnWholeObject(
+    // Object to spy on
+    NativeSourceBuffer,
+    // name in window
+    "SourceBuffer",
+    // read-only properties
+    ["updating", "buffered"],
+    // regular properties
+    ["mode", "timestampOffset", "appendWindowStart", "appendWindowEnd", "onupdate", "onupdatestart", "onupdateend", "onerror", "onabort"],
+    // static methods
+    [],
+    // methods
+    ["addEventListener", "removeEventListener", "dispatchEvent", "appendBuffer", "abort", "remove"],
+    // global logging object
     MSE_CALLS);
   }
 
   var resetSpies = null;
+
   /**
    * Start/restart spying on MSE API calls.
    */
-
   function start() {
     if (resetSpies) {
       resetSpies();
     }
-
     var resetSpyFunctions = [];
     var resetMediaSource = spyOnMediaSource$1();
-
     if (resetMediaSource) {
       resetSpyFunctions.push(resetMediaSource);
     }
-
     var resetSourceBuffer = spyOnMediaSource();
-
     if (resetSourceBuffer) {
       resetSpyFunctions.push(resetSourceBuffer);
     }
-
     resetSpies = function resetEverySpies() {
       resetSpyFunctions.forEach(function (fn) {
         fn && fn();
@@ -651,11 +600,10 @@
       resetSpies = null;
     };
   }
+
   /**
    * Stop spying on MSE API calls.
    */
-
-
   function stop() {
     if (resetSpies) {
       resetSpies();
@@ -667,7 +615,5 @@
   exports.resetMSECalls = resetMSECalls;
   exports.start = start;
   exports.stop = stop;
-
-  Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
